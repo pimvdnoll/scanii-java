@@ -51,8 +51,8 @@ public class ScaniiBatchClient {
           Thread.currentThread().setName(String.format("ScaniiBatchWorker[%s]", content.getFileName()));
           try {
             ScaniiResult result = client.process(content);
-            handler.handle(result);
             completed.incrementAndGet();
+            handler.handle(result);
           } finally {
             Thread.currentThread().setName(originalThreadName);
             pending.decrementAndGet();

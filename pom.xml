@@ -37,7 +37,6 @@
     <connection>scm:git:git@github.com:uvasoftware/scanii-java.git</connection>
     <developerConnection>scm:git:git@github.com:uvasoftware/scanii-java.git</developerConnection>
     <url>git@github.com:uvasoftware/scanii-java.git</url>
-    <tag>scanii-java-2.3</tag>
   </scm>
 
   <distributionManagement>
