@@ -1,5 +1,6 @@
 package com.scanii.client;
 
+import com.google.common.collect.ImmutableMap;
 import com.scanii.client.misc.EICAR;
 import com.scanii.client.misc.Systems;
 import org.junit.Before;
@@ -63,6 +64,19 @@ public class ScaniiClientTest {
     // failures:
 
   }
+
+  @Test
+  public void testProcessWithMetadata() throws Exception {
+
+    ScaniiResult result;
+
+    // simple processing clean
+    result = client.process(Systems.randomFile(1024), ImmutableMap.of("foo" , "bar"));
+    assertNotNull(result.getResourceId());
+    assertEquals("bar", result.getMetadata().get("foo"));
+    System.out.println(result);
+  }
+
 
   @Test(expected = ScaniiException.class)
   public void shoudlThrowErrosIfInvalidPost() throws IOException {

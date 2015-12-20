@@ -2,15 +2,14 @@ package com.scanii.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.kevinsawicki.http.HttpRequest;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.scanii.client.misc.Endpoints;
 import com.scanii.client.misc.HttpHeaders;
 import com.scanii.client.misc.JSON;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -42,10 +41,14 @@ public class ScaniiClient {
   /**
    * Submits a file to be processed @see <a href="http://docs.scanii.com/v2.0/resources.html#files">http://docs.scanii.com/v2.0/resources.html#files</a>
    *
-   * @param content path to the file to be processed
+   * @param content  path to the file to be processed
+   * @param metadata optional metadata to be added to this file
    * @return scanii result @see ScaniiResult
    */
-  public ScaniiResult process(Path content) {
+  public ScaniiResult process(Path content, Map<String, String> metadata) {
+    Preconditions.checkNotNull(content);
+    Preconditions.checkNotNull(metadata);
+
     try {
       HttpRequest r = HttpRequest.post(Endpoints.resolve(target, "files"))
         .userAgent(HttpHeaders.UA)
@@ -53,6 +56,10 @@ public class ScaniiClient {
         .part("file", content.toFile())
         .connectTimeout(DEFAULT_CONNECTION_TIMEOUT)
         .readTimeout(DEFAULT_READ_TIMEOUT);
+
+      for (Map.Entry<String, String> e : metadata.entrySet()) {
+        r.part(metadataKey(e.getKey()), e.getValue());
+      }
 
       if (r.code() != 201) {
         throw new ScaniiException(String.format("Invalid HTTP response from service, code: %s message: %s", r.code(), r.body()));
@@ -63,6 +70,16 @@ public class ScaniiClient {
     } catch (Exception ex) {
       throw new ScaniiException(ex);
     }
+  }
+
+  /**
+   * Submits a file to be processed @see <a href="http://docs.scanii.com/v2.0/resources.html#files">http://docs.scanii.com/v2.0/resources.html#files</a>
+   *
+   * @param content path to the file to be processed
+   * @return scanii result @see ScaniiResult
+   */
+  public ScaniiResult process(Path content) {
+    return process(content, ImmutableMap.<String, String>of());
   }
 
   /**
@@ -276,12 +293,21 @@ public class ScaniiClient {
       if (js.has("creation_date")) {
         result.setCreationDate(js.get("creation_date").asText());
       }
+      if (js.has("metadata")) {
+        for (Map<String, JsonNode> e : js.get("metadata").fields()) {
+
+        }
+      }
 
       return result;
 
     } catch (Exception ex) {
       throw new ScaniiException("Invalid response from service " + ex.getMessage(), ex);
     }
+  }
+
+  private String metadataKey(String key) {
+    return String.format("metadata[%s]", key);
   }
 
 }
